@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5">
+    <title>移动端视频展示</title>
+    <style>
+        /* 重置默认样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        /* 视频容器 */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 比例 */
+            background: #000;
+        }
+
+        .video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 控制栏 */
+        .controls {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            padding: 0.8rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 4px;
+            background: #404040;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .progress-filled {
+            width: 30%;
+            height: 100%;
+            background: #ff4757;
+            border-radius: 2px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 480px) {
+            .control-btn {
+                padding: 0.6rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* 加载动画 */
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <div class="loader"></div>
+        <video 
+            class="video-player"
+            controls
+            playsinline
+            webkit-playsinline
+            preload="metadata"
+            poster="thumbnail.jpg"
+        >
+            <source src="video/sp.mp4" type="video/sp.mp4">
+            <source src="video/sp.webm" type="video/sp.webm">
+            <p>您的浏览器不支持视频播放，请升级浏览器</p>
+        </video>
+    </div>
+
+    <div class="controls">
+        <button class="control-btn" onclick="togglePlay()">▶</button>
+        <div class="progress-bar">
+            <div class="progress-filled"></div>
+        </div>
+        <button class="control-btn" onclick="toggleMute()">🔊</button>
+    </div>
+
+    <script>
+        const video = document.querySelector('.video-player');
+        const playBtn = document.querySelector('[onclick="togglePlay()"]');
+        const muteBtn = document.querySelector('[onclick="toggleMute()"]');
+        const progress = document.querySelector('.progress-filled');
+        const loader = document.querySelector('.loader');
+
+        // 自动隐藏控制栏
+        let controlsTimeout;
+        function hideControls() {
+            document.querySelector('.controls').style.opacity = '0';
+        }
+        function showControls() {
+            document.querySelector('.controls').style.opacity = '1';
+            clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(hideControls, 3000);
+        }
+
+        // 播放/暂停控制
+        function togglePlay() {
+            video.paused ? video.play() : video.pause();
+        }
+
+        // 静音控制
+        function toggleMute() {
+            video.muted = !video.muted;
+            muteBtn.textContent = video.muted ? '🔇' : '🔊';
+        }
+
+        // 进度条更新
+        video.addEventListener('timeupdate', () => {
+            const progressPercent = (video.currentTime / video.duration) * 100;
+            progress.style.width = `${progressPercent}%`;
+        });
+
+        // 加载状态
+        video.addEventListener('waiting', () => loader.style.display = 'block');
+        video.addEventListener('canplay', () => loader.style.display = 'none');
+
+        // 触摸事件
+        document.addEventListener('touchstart', showControls);
+        video.addEventListener('click', togglePlay);
+    </script>
+</body>
+</html>
